@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat & Report - AI Fashion Insight Engine</title>
+  <style>
+    :root {
+      --bg: #f3f7fd;
+      --card-bg: #ffffff;
+      --border-subtle: #dbe5f5;
+      --primary: #7fb5ff;
+      --primary-dark: #4f8fea;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-main);
+    }
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .app-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .app-divider {
+      height: 1px;
+      background-color: #dbe5f5;
+      margin-bottom: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #e0edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #1f2937;
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 999px;
+    }
+    .profile-menu {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      padding: 8px;
+      display: none;
+      z-index: 20;
+      min-width: 140px;
+    }
+    .profile-menu button {
+      width: 100%;
+      padding: 6px 10px;
+      margin: 2px 0;
+      font-size: 13px;
+      background-color: #edf2ff;
+      color: #111827;
+      text-align: left;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .chat-area {
+      max-height: 420px;
+      overflow-y: auto;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      margin-bottom: 12px;
+    }
+    .msg {
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    .msg-user {
+      background-color: #dbeafe;
+      align-self: flex-end;
+    }
+    .msg-ai {
+      background-color: #e5e7eb;
+      align-self: flex-start;
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .chat-input-row textarea {
+      flex: 1;
+      min-height: 60px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      resize: vertical;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background-color: var(--primary);
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+    button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background-color: #e3eefc;
+      color: var(--primary-dark);
+    }
+    .btn-danger {
+      background-color: #f97373;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-row button {
+      flex: 1;
+    }
+    .report-area {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fafb;
+      min-height: 80px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    .small {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <button class="back-btn" id="back-btn" type="button">&lt;</button>
+    <div class="app-title">AI Fashion Insight Engine</div>
+    <div class="header-right">
+      <div class="avatar" id="profile-avatar">
+        <img id="profile-avatar-img" alt="프로필 이미지" style="display:none;" />
+        <span id="avatar-initial">?</span>
+        <div class="profile-menu" id="profile-menu">
+          <button id="menu-profile-edit" type="button">회원정보 수정</button>
+          <button id="menu-password-edit" type="button">비밀번호 수정</button>
+          <button id="menu-logout" type="button">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="app-divider"></div>
+
+  <h1>Chat &amp; Report</h1>
+
+  <div class="card">
+    <div class="small" style="margin-bottom:8px;">
+      The State of Fashion 리포트에 대해 자유롭게 질문하고, 대화 내용을 리포트로 정리할 수 있습니다.
+    </div>
+
+    <div id="chat-area" class="chat-area"></div>
+
+    <div class="chat-input-row">
+      <textarea id="chat-input" placeholder="패션·리테일 인사이트에 대해 자유롭게 질문해보세요."></textarea>
+      <button id="send-btn" type="button">전송</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="report-btn" type="button" class="btn-secondary">대화 내용으로 리포트 생성</button>
+      <button id="clear-btn" type="button" class="btn-danger">대화 및 리포트 초기화</button>
+    </div>
+
+    <div id="report-area" class="report-area"></div>
+  </div>
+
+  <script>
+    const apiBase = "";
+
+    const chatArea = document.getElementById("chat-area");
+    const chatInput = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
+    const reportBtn = document.getElementById("report-btn");
+    const clearBtn = document.getElementById("clear-btn");
+    const reportArea = document.getElementById("report-area");
+
+    const backBtn = document.getElementById("back-btn");
+    backBtn.addEventListener("click", () => window.history.back());
+
+    let chatHistory = [];
+
+    function renderChat() {
+      chatArea.innerHTML = "";
+      chatHistory.forEach((msg) => {
+        const div = document.createElement("div");
+        div.className = "msg " + (msg.role === "user" ? "msg-user" : "msg-ai");
+        div.textContent = msg.content;
+        chatArea.appendChild(div);
+      });
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      chatHistory.push({ role: "user", content: text });
+      renderChat();
+      chatInput.value = "";
+
+      const loadingMsg = { role: "assistant", content: "AI가 SoF 리포트를 참고해 답변 중입니다..." };
+      chatHistory.push(loadingMsg);
+      renderChat();
+
+      try {
+        const res = await fetch(apiBase + "/chat_report/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: text }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        chatHistory.pop();
+
+        if (!res.ok) {
+          const msg = data.detail || "답변 생성 중 오류가 발생했습니다.";
+          chatHistory.push({ role: "assistant", content: msg });
+        } else {
+          chatHistory.push({ role: "assistant", content: data.answer || "" });
+        }
+      } catch (err) {
+        console.error(err);
+        chatHistory.pop();
+        chatHistory.push({ role: "assistant", content: "네트워크 오류가 발생했습니다." });
+      }
+
+      renderChat();
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    reportBtn.addEventListener("click", async () => {
+      if (!chatHistory.length) {
+        reportArea.textContent = "먼저 챗봇과 몇 번 대화를 나눈 뒤 리포트를 생성해주세요.";
+        return;
+      }
+
+      reportArea.textContent = "대화 내용을 요약 리포트로 정리하는 중입니다...";
+
+      try {
+        const res = await fetch(apiBase + "/chat_report/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ history: chatHistory }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          reportArea.textContent = data.detail || "리포트 생성 중 오류가 발생했습니다.";
+          return;
+        }
+
+        reportArea.textContent = data.report || "";
+      } catch (err) {
+        console.error(err);
+        reportArea.textContent = "네트워크 오류가 발생했습니다.";
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      chatHistory = [];
+      renderChat();
+      reportArea.textContent = "";
+    });
+
+    const avatarEl = document.getElementById("profile-avatar");
+    const avatarImgEl = document.getElementById("profile-avatar-img");
+    const avatarInitialEl = document.getElementById("avatar-initial");
+    const profileMenuEl = document.getElementById("profile-menu");
+    const menuProfileEditBtn = document.getElementById("menu-profile-edit");
+    const menuPasswordEditBtn = document.getElementById("menu-password-edit");
+    const menuLogoutBtn = document.getElementById("menu-logout");
+
+    const currentEmail = localStorage.getItem("currentEmail") || "";
+    let storedProfileImage = localStorage.getItem("currentProfileImage");
+    if (!storedProfileImage && currentEmail === "test@email.com") {
+      storedProfileImage = "../models/dog1.jpeg";
+    }
+
+    if (storedProfileImage) {
+      avatarImgEl.src = storedProfileImage;
+      avatarImgEl.style.display = "block";
+      avatarInitialEl.style.display = "none";
+    } else {
+      avatarInitialEl.textContent = currentEmail ? currentEmail[0].toUpperCase() : "";
+      avatarInitialEl.style.display = "block";
+      avatarImgEl.style.display = "none";
+    }
+
+    avatarEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = profileMenuEl.style.display === "block";
+      profileMenuEl.style.display = isOpen ? "none" : "block";
+    });
+
+    document.addEventListener("click", () => {
+      profileMenuEl.style.display = "none";
+    });
+
+    profileMenuEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    menuProfileEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/profile_edit.html";
+    });
+
+    menuPasswordEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/password_edit.html";
+    });
+
+    menuLogoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentEmail");
+      localStorage.removeItem("currentProfileImage");
+      window.location.href = "/static/index.html";
+    });
+  </script>
+</body>
+</html>
+

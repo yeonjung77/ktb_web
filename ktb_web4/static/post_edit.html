@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시글 수정 - 커뮤니티</title>
+  <style>
+    :root {
+      --bg: #f3f7fd;
+      --card-bg: #ffffff;
+      --border-subtle: #dbe5f5;
+      --primary: #7fb5ff;
+      --primary-dark: #4f8fea;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-main);
+      position: relative;
+    }
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .small { font-size: 12px; color: var(--text-muted); }
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .input-row { margin-bottom: 12px; }
+    .input-row label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-muted); }
+    .input-row input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      outline: none;
+    }
+    .input-row input:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(127, 181, 255, 0.4);
+      background-color: #ffffff;
+    }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 10px 12px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      outline: none;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background-color: var(--primary);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+    button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    .result {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+      text-align: center;
+    }
+    .result.ok { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+    .result.error { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .app-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .app-divider {
+      height: 1px;
+      background-color: #dbe5f5;
+      margin-bottom: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #e0edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #1f2937;
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 999px;
+    }
+    .profile-menu {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      padding: 8px;
+      display: none;
+      z-index: 20;
+      min-width: 140px;
+    }
+    .profile-menu button {
+      width: 100%;
+      padding: 6px 10px;
+      margin: 2px 0;
+      font-size: 13px;
+      background-color: #edf2ff;
+      color: #111827;
+      text-align: left;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <button class="back-btn" id="back-btn" type="button">&lt;</button>
+    <div class="app-title">AI Fashion Insight Engine</div>
+    <div class="header-right">
+      <div class="avatar" id="profile-avatar">
+        <img id="profile-avatar-img" alt="프로필 이미지" style="display:none;" />
+        <span id="avatar-initial">?</span>
+        <div class="profile-menu" id="profile-menu">
+          <button id="menu-profile-edit" type="button">회원정보 수정</button>
+          <button id="menu-password-edit" type="button">비밀번호 수정</button>
+          <button id="menu-logout" type="button">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="app-divider"></div>
+
+  <h1>게시글 수정</h1>
+
+  <div class="card">
+    <div class="input-row">
+      <label for="edit-title">제목</label>
+      <input id="edit-title" type="text" maxlength="26" placeholder="제목을 입력해주세요. (최대 26자)" />
+    </div>
+
+    <div class="input-row">
+      <label for="edit-content">내용</label>
+      <textarea id="edit-content"></textarea>
+    </div>
+
+    <div class="input-row">
+      <label for="edit-image">이미지 첨부</label>
+      <input id="edit-image" type="file" />
+    </div>
+
+    <button id="submit-edit-btn" type="button">수정하기</button>
+
+    <div id="edit-result" class="result"></div>
+  </div>
+
+  <script>
+    const apiBase = "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get("id");
+
+    const avatarEl = document.getElementById("profile-avatar");
+    const avatarImgEl = document.getElementById("profile-avatar-img");
+    const avatarInitialEl = document.getElementById("avatar-initial");
+    const profileMenuEl = document.getElementById("profile-menu");
+    const menuProfileEditBtn = document.getElementById("menu-profile-edit");
+    const menuPasswordEditBtn = document.getElementById("menu-password-edit");
+    const menuLogoutBtn = document.getElementById("menu-logout");
+
+    const currentEmail = localStorage.getItem("currentEmail") || "";
+    const storedProfileImage = localStorage.getItem("currentProfileImage");
+    if (storedProfileImage) {
+      avatarImgEl.src = storedProfileImage;
+      avatarImgEl.style.display = "block";
+      avatarInitialEl.style.display = "none";
+    } else {
+      avatarInitialEl.textContent = currentEmail ? currentEmail[0].toUpperCase() : "?";
+      avatarInitialEl.style.display = "block";
+      avatarImgEl.style.display = "none";
+    }
+
+    avatarEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = profileMenuEl.style.display === "block";
+      profileMenuEl.style.display = isOpen ? "none" : "block";
+    });
+
+    document.addEventListener("click", () => {
+      profileMenuEl.style.display = "none";
+    });
+
+    profileMenuEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    menuProfileEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/profile_edit.html";
+    });
+
+    menuPasswordEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/password_edit.html";
+    });
+
+    menuLogoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentEmail");
+      localStorage.removeItem("currentProfileImage");
+      window.location.href = "/static/index.html";
+    });
+
+    document.getElementById("back-btn").addEventListener("click", () => {
+      window.history.back();
+    });
+
+    // 제목 길이 제한 (JS 이중 보호)
+    const titleInput = document.getElementById("edit-title");
+    titleInput.addEventListener("input", () => {
+      if (titleInput.value.length > 26) {
+        titleInput.value = titleInput.value.slice(0, 26);
+      }
+    });
+
+    const editResultEl = document.getElementById("edit-result");
+
+    if (!postId) {
+      editResultEl.style.display = "block";
+      editResultEl.className = "result error";
+      editResultEl.textContent = "id 파라미터가 없습니다.";
+    } else {
+      preload();
+    }
+
+    async function preload() {
+      try {
+        const res = await fetch(apiBase + `/posts/${postId}?email=guest@example.com`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+
+        document.getElementById("edit-title").value = data.title || "";
+        document.getElementById("edit-content").value = data.content || "";
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // 수정하기 버튼
+    document.getElementById("submit-edit-btn").addEventListener("click", async () => {
+      const title = document.getElementById("edit-title").value.trim();
+      const content = document.getElementById("edit-content").value.trim();
+      const imageFile = document.getElementById("edit-image").files[0] || null;
+
+      if (!title || !content) {
+        editResultEl.style.display = "block";
+        editResultEl.className = "result error";
+        editResultEl.textContent = "제목과 내용을 입력해주세요.";
+        return;
+      }
+
+      const form = new FormData();
+      form.append("title", title);
+      form.append("content", content);
+      if (imageFile) form.append("image", imageFile);
+
+      try {
+        const res = await fetch(apiBase + `/posts/${postId}/edit`, {
+          method: "PUT",
+          body: form,
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          editResultEl.style.display = "block";
+          editResultEl.className = "result error";
+          editResultEl.textContent = data.detail || "수정 중 오류가 발생했습니다.";
+          return;
+        }
+
+        editResultEl.style.display = "block";
+        editResultEl.className = "result ok";
+        editResultEl.textContent = "수정 완료";
+
+        // 수정 성공 후 상세페이지 이동
+        setTimeout(() => {
+          window.location.href = `/static/post_detail.html?id=${encodeURIComponent(postId)}`;
+        }, 700);
+
+      } catch (err) {
+        console.error(err);
+        editResultEl.style.display = "block";
+        editResultEl.className = "result error";
+        editResultEl.textContent = "네트워크 오류가 발생했습니다.";
+      }
+    });
+  </script>
+</body>
+</html>

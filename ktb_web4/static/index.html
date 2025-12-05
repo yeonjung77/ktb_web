@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>로그인 - 커뮤니티</title>
+  <style>
+    :root {
+      --bg: #f3f7fd;
+      --card-bg: #ffffff;
+      --border-subtle: #dbe5f5;
+      --primary: #7fb5ff;
+      --primary-dark: #4f8fea;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 420px;
+      margin: 60px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-main);
+    }
+    h1 {
+      margin-bottom: 0.75rem;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .card {
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin-top: 16px;
+      background-color: var(--card-bg);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+    }
+    button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background-color: var(--primary);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background-color: #e3eefc;
+      color: var(--primary-dark);
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .button-row button {
+      flex: 1;
+    }
+    .result {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .result.ok {
+      background-color: #e0f2fe;
+      color: #075985;
+      border: 1px solid #bae6fd;
+    }
+    .result.error {
+      background-color: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .small {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .input-row {
+      margin-bottom: 12px;
+    }
+    .input-row label {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .input-row input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .input-row input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(127, 181, 255, 0.4);
+      background-color: #ffffff;
+    }
+    .app-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .app-divider {
+      height: 1px;
+      background-color: var(--border-subtle);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-title">AI Fashion Insight Engine</div>
+  <div class="app-divider"></div>
+
+  <div class="card">
+    <h2>로그인</h2>
+
+    <div class="input-row">
+      <label class="small" for="login-email">이메일</label><br />
+      <input id="login-email" type="email" placeholder="test@email.com" />
+    </div>
+
+    <div class="input-row">
+      <label class="small" for="login-password">비밀번호</label><br />
+      <input id="login-password" type="password" placeholder="Test1234!" />
+    </div>
+
+    <div class="button-row">
+      <button id="login-btn">로그인</button>
+      <button id="go-signup-btn" type="button" class="btn-secondary">회원가입</button>
+    </div>
+
+    <span id="login-loading" class="small" style="display:none;">요청 중...</span>
+
+    <div id="login-result" style="display:none;" class="result"></div>
+
+    <p class="small" style="margin-top:12px;">
+      기본 계정: 
+      <code>이메일: test@email.com</code>,
+      <code>비밀번호: Test1234!</code>
+    </p>
+  </div>
+
+  <script>
+    const apiBase = "";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const loginEmailInput = document.getElementById("login-email");
+      const loginPasswordInput = document.getElementById("login-password");
+      const loginBtn = document.getElementById("login-btn");
+      const loginLoadingEl = document.getElementById("login-loading");
+      const loginResultEl = document.getElementById("login-result");
+      const goSignupBtn = document.getElementById("go-signup-btn");
+
+      function setLoginLoading(isLoading) {
+        loginBtn.disabled = isLoading;
+        loginLoadingEl.style.display = isLoading ? "inline" : "none";
+      }
+
+      function showLoginResult(ok, message) {
+        loginResultEl.style.display = "block";
+        loginResultEl.className = "result " + (ok ? "ok" : "error");
+        loginResultEl.textContent = message;
+      }
+
+      async function doLogin() {
+        const email = loginEmailInput.value.trim();
+        const password = loginPasswordInput.value;
+
+        setLoginLoading(true);
+
+        try {
+          const res = await fetch(apiBase + "/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            showLoginResult(false, data.detail || "로그인 실패");
+            return;
+          }
+
+          localStorage.setItem("currentEmail", email);
+          showLoginResult(true, data.message || "로그인에 성공했습니다.");
+          window.location.href = "/static/posts_list.html";
+
+        } catch (err) {
+          console.error(err);
+          showLoginResult(false, "네트워크 오류가 발생했습니다.");
+        } finally {
+          setLoginLoading(false);
+        }
+      }
+
+      loginBtn.addEventListener("click", doLogin);
+      loginPasswordInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doLogin();
+      });
+
+      goSignupBtn.addEventListener("click", () => {
+        window.location.href = "/static/signup.html";
+      });
+    });
+  </script>
+</body>
+</html>

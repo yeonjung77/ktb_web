@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시글 작성 - 커뮤니티</title>
+  <style>
+    :root {
+      --bg: #f3f7fd;
+      --card-bg: #ffffff;
+      --border-subtle: #dbe5f5;
+      --primary: #7fb5ff;
+      --primary-dark: #4f8fea;
+      --primary-disabled: #bcd7ff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-main);
+      position: relative;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .app-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .app-divider {
+      height: 1px;
+      background-color: #dbe5f5;
+      margin-bottom: 12px;
+    }
+    /* 뒤로가기 버튼 */
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #e0edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #1f2937;
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 999px;
+    }
+    .profile-menu {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      padding: 8px;
+      display: none;
+      z-index: 20;
+      min-width: 140px;
+    }
+    .profile-menu button {
+      width: 100%;
+      padding: 6px 10px;
+      margin: 2px 0;
+      font-size: 13px;
+      background-color: #edf2ff;
+      color: #111827;
+      text-align: left;
+      border-radius: 8px;
+    }
+
+    h1 {
+      margin-top: 40px;
+      margin-bottom: 1rem;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      text-align: left;
+    }
+
+    .input-row { margin-bottom: 14px; }
+    .input-row label { 
+      display: block; 
+      margin-bottom: 4px; 
+      font-size: 13px; 
+      color: var(--text-muted); 
+    }
+
+    .input-row input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      outline: none;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 10px 12px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      outline: none;
+    }
+
+    /* 완료 버튼 */
+    button {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background-color: var(--primary-disabled);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      transition: background-color 0.15s ease;
+    }
+
+    button.enabled {
+      background-color: var(--primary);
+      cursor: pointer;
+    }
+
+    button.enabled:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .result {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+    .result.error { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .result.ok { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <button class="back-btn" id="back-btn" type="button">&lt;</button>
+    <div class="app-title">AI Fashion Insight Engine</div>
+    <div class="header-right">
+      <div class="avatar" id="profile-avatar">
+        <img id="profile-avatar-img" alt="프로필 이미지" style="display:none;" />
+        <span id="avatar-initial">?</span>
+        <div class="profile-menu" id="profile-menu">
+          <button id="menu-profile-edit" type="button">회원정보 수정</button>
+          <button id="menu-password-edit" type="button">비밀번호 수정</button>
+          <button id="menu-logout" type="button">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="app-divider"></div>
+
+  <h1>게시글 작성</h1>
+
+  <div class="card">
+
+    <div class="input-row">
+      <!-- 2. 제목 placeholder & 글자수 제한 -->
+      <label for="create-title">제목</label>
+      <input id="create-title" type="text" maxlength="26"
+        placeholder="제목을 입력해주세요. (최대 26자)">
+    </div>
+
+    <div class="input-row">
+      <label for="create-content">내용</label>
+      <textarea id="create-content"></textarea>
+    </div>
+
+    <div class="input-row">
+      <label for="create-image">이미지 첨부</label>
+      <input id="create-image" type="file" />
+    </div>
+
+    <button id="submit-create-btn" class="">완료</button>
+
+    <div id="create-result" class="result"></div>
+  </div>
+
+  <script>
+    const apiBase = "";
+    const savedEmail = localStorage.getItem("currentEmail");
+
+    const avatarEl = document.getElementById("profile-avatar");
+    const avatarImgEl = document.getElementById("profile-avatar-img");
+    const avatarInitialEl = document.getElementById("avatar-initial");
+    const profileMenuEl = document.getElementById("profile-menu");
+    const menuProfileEditBtn = document.getElementById("menu-profile-edit");
+    const menuPasswordEditBtn = document.getElementById("menu-password-edit");
+    const menuLogoutBtn = document.getElementById("menu-logout");
+
+    // 프로필 이미지 또는 이니셜 표시
+    const storedProfileImage = localStorage.getItem("currentProfileImage");
+    const currentEmail = savedEmail || "";
+    if (storedProfileImage) {
+      avatarImgEl.src = storedProfileImage;
+      avatarImgEl.style.display = "block";
+      avatarInitialEl.style.display = "none";
+    } else {
+      avatarInitialEl.textContent = currentEmail ? currentEmail[0].toUpperCase() : "?";
+      avatarInitialEl.style.display = "block";
+      avatarImgEl.style.display = "none";
+    }
+
+    // 아바타 메뉴 토글
+    avatarEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = profileMenuEl.style.display === "block";
+      profileMenuEl.style.display = isOpen ? "none" : "block";
+    });
+
+    // 바깥 클릭 → 메뉴 닫기
+    document.addEventListener("click", () => {
+      profileMenuEl.style.display = "none";
+    });
+
+    profileMenuEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    // 메뉴 동작
+    menuProfileEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/profile_edit.html";
+    });
+
+    menuPasswordEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/password_edit.html";
+    });
+
+    menuLogoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentEmail");
+      localStorage.removeItem("currentProfileImage");
+      window.location.href = "/static/index.html";
+    });
+
+    const titleInput = document.getElementById("create-title");
+    const contentInput = document.getElementById("create-content");
+    const submitBtn = document.getElementById("submit-create-btn");
+    const resultEl = document.getElementById("create-result");
+
+    const backBtn = document.getElementById("back-btn");
+    backBtn.addEventListener("click", () => window.history.back());
+
+    /* 4. 제목 + 내용 입력 시 버튼 활성화 */
+    function updateButtonState() {
+      if (titleInput.value.trim() && contentInput.value.trim()) {
+        submitBtn.classList.add("enabled");
+      } else {
+        submitBtn.classList.remove("enabled");
+      }
+    }
+
+    titleInput.addEventListener("input", updateButtonState);
+    contentInput.addEventListener("input", updateButtonState);
+
+    /* 3. 제목 27자 이상 입력 방지 (maxlength + JS 이중 보호) */
+    titleInput.addEventListener("input", () => {
+      if (titleInput.value.length > 26) {
+        titleInput.value = titleInput.value.slice(0, 26);
+      }
+    });
+
+    /* 5. 비활성화 상태에서 완료 버튼 클릭 시 텍스트 출력 */
+    submitBtn.addEventListener("click", async () => {
+      if (!titleInput.value.trim() || !contentInput.value.trim()) {
+        resultEl.className = "result error";
+        resultEl.textContent = "제목, 내용을 모두 작성해주세요.";
+        resultEl.style.display = "block";
+        return;
+      }
+
+      /* ---- 실제 등록 로직 ---- */
+      const form = new FormData();
+      form.append("title", titleInput.value.trim());
+      form.append("content", contentInput.value.trim());
+      form.append("email", savedEmail || "guest@example.com");
+
+      const imageFile = document.getElementById("create-image").files[0];
+      if (imageFile) form.append("image", imageFile);
+
+      try {
+        const res = await fetch(apiBase + "/posts/create", {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          resultEl.className = "result error";
+          resultEl.textContent = data.detail || "등록 중 오류가 발생했습니다.";
+          resultEl.style.display = "block";
+          return;
+        }
+
+        resultEl.className = "result ok";
+        resultEl.textContent = "등록 완료!";
+        resultEl.style.display = "block";
+
+        setTimeout(() => {
+          window.location.href = `/static/post_detail.html?id=${encodeURIComponent(data.post_id)}`;
+        }, 700);
+      } catch (err) {
+        resultEl.className = "result error";
+        resultEl.textContent = "네트워크 오류가 발생했습니다.";
+        resultEl.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>
