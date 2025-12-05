@@ -4,7 +4,6 @@ python-dotenv
 langchain
 langchain-community
 langchain-huggingface
-langchain-groq
 huggingface-hub
 sentence-transformers
 faiss-cpu

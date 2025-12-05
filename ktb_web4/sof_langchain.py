@@ -1,33 +1,82 @@
+import json
 import os
+import urllib.error
+import urllib.request
 from collections import defaultdict
 from typing import List, Dict, Any
 
 from dotenv import load_dotenv
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from langchain_community.retrievers import BM25Retriever
 from langchain_community.vectorstores import FAISS
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 
 
 load_dotenv()
-_groq_key = os.getenv("GROQ_API_KEY")
+
+# 로컬 LLM(Ollama) 설정
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+SOF_LLM_MODEL = os.getenv("SOF_LLM_MODEL", "llama3")
 
 
-def _ensure_groq_key():
-    if not _groq_key:
+def _call_ollama_chat(messages: List[Dict[str, str]]) -> str:
+    """
+    Ollama /api/chat 엔드포인트로 요청을 보내는 헬퍼.
+    - Ollama 앱이 로컬에서 실행 중이어야 함
+    - `ollama pull llama3` 등으로 SOF_LLM_MODEL에 해당하는 모델이 준비되어 있어야 함
+    """
+    url = f"{OLLAMA_HOST.rstrip('/')}/api/chat"
+    payload = {
+        "model": SOF_LLM_MODEL,
+        "messages": messages,
+        "stream": False,
+        "options": {"temperature": 0.1, "top_p": 0.9},
+    }
+
+    data = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        url, data=data, headers={"Content-Type": "application/json"}
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            body = response.read().decode("utf-8")
+    except urllib.error.URLError as exc:
         raise HTTPException(
-            status_code=500,
-            detail="GROQ_API_KEY가 설정되지 않았습니다. 서버 .env에 GROQ_API_KEY를 추가해주세요.",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "패션 리서치용 LLM 서버에 연결할 수 없습니다. "
+                "Ollama가 실행 중인지와 SOF_LLM_MODEL에 지정된 모델이 다운로드되어 있는지 확인해주세요."
+            ),
+        ) from exc
+    except Exception as exc:  # pragma: no cover - 방어적 코드
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="패션 리서치용 LLM 호출 중 오류가 발생했습니다.",
+        ) from exc
+
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="패션 리서치용 LLM 응답을 읽을 수 없습니다.",
+        ) from exc
+
+    # Ollama /api/chat 응답 형식: { ..., "message": {"role": "assistant", "content": "..."} }
+    response_text = parsed.get("message", {}).get("content", "").strip()
+    if not response_text:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="패션 리서치용 LLM 응답이 비어 있습니다.",
         )
+
+    return response_text
 
 
 _vectorstore: FAISS | None = None
 _bm25_retriever: BM25Retriever | None = None
-_llm: ChatGroq | None = None
 _by_year_chapter: Dict[Any, Any] | None = None
 _by_chapter: Dict[Any, Any] | None = None
 
@@ -56,20 +105,6 @@ def get_vectorstore() -> FAISS:
         faiss_dir, embeddings, allow_dangerous_deserialization=True
     )
     return _vectorstore
-
-
-def get_llm() -> ChatGroq:
-    global _llm
-    if _llm is not None:
-        return _llm
-
-    _ensure_groq_key()
-    _llm = ChatGroq(
-        model_name="llama-3.1-8b-instant",
-        temperature=0.1,
-        groq_api_key=_groq_key,
-    )
-    return _llm
 
 
 def get_bm25_retriever() -> BM25Retriever:
@@ -178,48 +213,18 @@ def format_docs(docs) -> str:
     return "\n\n".join(processed)
 
 
-qa_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You are a professional Fashion MD Research Assistant.\n"
-            "Use ONLY the content from McKinsey & BoF 'State of Fashion' (2021–2025).\n"
-            "답변은 한국어로, 핵심 용어는 영어 병기해줘.",
-        ),
-        (
-            "human",
-            "질문: {question}\n\n"
-            "참고 문서:\n{context}",
-        ),
-    ]
+QA_SYSTEM_PROMPT = (
+    "You are a professional Fashion MD Research Assistant.\n"
+    "Use ONLY the content from McKinsey & BoF 'State of Fashion' (2021–2025).\n"
+    "답변은 한국어로, 핵심 용어는 영어 병기해줘."
 )
 
-report_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You are a senior fashion strategy consultant.\n"
-            "Below is a conversation between a Fashion MD and an AI research assistant\n"
-            "about insights from McKinsey & BoF 'State of Fashion' (2021–2025).\n"
-            "Use ONLY information that can be reasonably grounded in this conversation.\n"
-            "답변은 한국어로 작성하고, 핵심 개념은 필요할 때만 영어 병기해줘.",
-        ),
-        (
-            "human",
-            "다음은 사용자(패션 MD)와 AI 리서치 어시스턴트의 대화 로그입니다.\n"
-            "이 대화를 바탕으로 간결한 인사이트 리포트를 작성해주세요.\n\n"
-            "대화 로그:\n{conversation}\n\n"
-            "📌 리포트 구성은 다음 섹션을 포함해 주세요.\n"
-            "1. Executive Summary\n"
-            "2. Key Insights (bullet 형태)\n"
-            "3. Implications & Action Ideas (현업 활용 아이디어 중심)\n\n"
-            "⚠️ 주의사항\n"
-            "- 반드시 대화 내용에서 파생될 수 있는 인사이트만 정리할 것\n"
-            "- McKinsey/BoF 리포트에 일반적으로 등장할 법한 문장이라도, 대화에 전혀 나오지 않았다면 생성하지 말 것\n"
-            "- 한국어 문장을 사용하되, 필요한 핵심 용어만 영어 병기\n"
-            "- 문장은 짧고 명료하게, 실제 보고서에 바로 붙여 넣을 수 있는 톤으로 작성",
-        ),
-    ]
+REPORT_SYSTEM_PROMPT = (
+    "You are a senior fashion strategy consultant.\n"
+    "Below is a conversation between a Fashion MD and an AI research assistant\n"
+    "about insights from McKinsey & BoF 'State of Fashion' (2021–2025).\n"
+    "Use ONLY information that can be reasonably grounded in this conversation.\n"
+    "답변은 한국어로 작성하고, 핵심 개념은 필요할 때만 영어 병기해줘."
 )
 
 
@@ -228,7 +233,6 @@ def answer_question(question: str) -> str:
         raise HTTPException(status_code=400, detail="질문을 입력해주세요.")
 
     _ = get_vectorstore()
-    _ = get_llm()
 
     docs = hybrid_search(
         question,
@@ -238,8 +242,17 @@ def answer_question(question: str) -> str:
     )
 
     context = format_docs(docs[:8])
-    chain = qa_prompt | get_llm() | StrOutputParser()
-    return chain.invoke({"question": question, "context": context})
+    messages = [
+        {
+            "role": "system",
+            "content": QA_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": f"질문: {question}\n\n참고 문서:\n{context}",
+        },
+    ]
+    return _call_ollama_chat(messages)
 
 
 def generate_conversation_report(history: List[Dict[str, str]]) -> str:
@@ -260,8 +273,29 @@ def generate_conversation_report(history: List[Dict[str, str]]) -> str:
     conversation_text = "\n".join(lines)
 
     _ = get_vectorstore()
-    _ = get_llm()
 
-    chain = report_prompt | get_llm() | StrOutputParser()
-    return chain.invoke({"conversation": conversation_text})
+    messages = [
+        {
+            "role": "system",
+            "content": REPORT_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": (
+                "다음은 사용자(패션 MD)와 AI 리서치 어시스턴트의 대화 로그입니다.\n"
+                "이 대화를 바탕으로 간결한 인사이트 리포트를 작성해주세요.\n\n"
+                f"대화 로그:\n{conversation_text}\n\n"
+                "📌 리포트 구성은 다음 섹션을 포함해 주세요.\n"
+                "1. Executive Summary\n"
+                "2. Key Insights (bullet 형태)\n"
+                "3. Implications & Action Ideas (현업 활용 아이디어 중심)\n\n"
+                "⚠️ 주의사항\n"
+                "- 반드시 대화 내용에서 파생될 수 있는 인사이트만 정리할 것\n"
+                "- McKinsey/BoF 리포트에 일반적으로 등장할 법한 문장이라도, 대화에 전혀 나오지 않았다면 생성하지 말 것\n"
+                "- 한국어 문장을 사용하되, 필요한 핵심 용어만 영어 병기\n"
+                "- 문장은 짧고 명료하게, 실제 보고서에 바로 붙여 넣을 수 있는 톤으로 작성"
+            ),
+        },
+    ]
 
+    return _call_ollama_chat(messages)
