@@ -286,12 +286,20 @@
     </div>
   </div>
 
-  <script>
+	  <script>
 	    const apiBase = "";
 	    const urlParams = new URLSearchParams(window.location.search);
 	    const postId = urlParams.get("id");
 	    const currentEmail = localStorage.getItem("currentEmail") || "guest@example.com";
 	    const currentNickname = localStorage.getItem("currentNickname") || "";
+
+	    const appTitleEl = document.querySelector(".app-title");
+	    if (appTitleEl) {
+	      appTitleEl.style.cursor = "pointer";
+	      appTitleEl.addEventListener("click", () => {
+	        window.location.href = "/static/posts_list.html";
+	      });
+	    }
 
     const postDetailEmptyEl = document.getElementById("post-detail-empty");
     const postDetailEl = document.getElementById("post-detail");

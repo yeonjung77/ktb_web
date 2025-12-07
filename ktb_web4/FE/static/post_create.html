@@ -252,12 +252,20 @@
     const savedEmail = localStorage.getItem("currentEmail");
 
     const avatarEl = document.getElementById("profile-avatar");
-    const avatarImgEl = document.getElementById("profile-avatar-img");
+	    const avatarImgEl = document.getElementById("profile-avatar-img");
     const avatarInitialEl = document.getElementById("avatar-initial");
     const profileMenuEl = document.getElementById("profile-menu");
     const menuProfileEditBtn = document.getElementById("menu-profile-edit");
     const menuPasswordEditBtn = document.getElementById("menu-password-edit");
-    const menuLogoutBtn = document.getElementById("menu-logout");
+	    const menuLogoutBtn = document.getElementById("menu-logout");
+
+	    const appTitleEl = document.querySelector(".app-title");
+	    if (appTitleEl) {
+	      appTitleEl.style.cursor = "pointer";
+	      appTitleEl.addEventListener("click", () => {
+	        window.location.href = "/static/posts_list.html";
+	      });
+	    }
 
     // 프로필 이미지 또는 이니셜 표시
     const storedProfileImage = localStorage.getItem("currentProfileImage");

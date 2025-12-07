@@ -217,6 +217,13 @@
 
   <script>
     const apiBase = "";
+    const appTitleEl = document.querySelector(".app-title");
+    if (appTitleEl) {
+      appTitleEl.style.cursor = "pointer";
+      appTitleEl.addEventListener("click", () => {
+        window.location.href = "/static/posts_list.html";
+      });
+    }
     const postsListEl = document.getElementById("posts-list");
     const goCreateBtn = document.getElementById("go-create-btn");
     const goChatReportBtn = document.getElementById("go-chat-report-btn");

@@ -163,6 +163,14 @@
     const signupBtn = document.getElementById("signup-btn");
     const signupResultEl = document.getElementById("signup-result");
 
+    const appTitleEl = document.querySelector(".app-title");
+    if (appTitleEl) {
+      appTitleEl.style.cursor = "pointer";
+      appTitleEl.addEventListener("click", () => {
+        window.location.href = "/static/posts_list.html";
+      });
+    }
+
 
     avatarPreview.addEventListener("click", () => {
       if (!hasProfile) {

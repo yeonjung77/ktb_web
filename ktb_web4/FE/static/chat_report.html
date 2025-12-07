@@ -303,6 +303,14 @@
     const reportBtn = document.getElementById("report-btn");
     const clearBtn = document.getElementById("clear-btn");
     const reportArea = document.getElementById("report-area");
+
+    const appTitleEl = document.querySelector(".app-title");
+    if (appTitleEl) {
+      appTitleEl.style.cursor = "pointer";
+      appTitleEl.addEventListener("click", () => {
+        window.location.href = "/static/posts_list.html";
+      });
+    }
     const loadingIndicator = document.getElementById("loading-indicator");
 
     const backBtn = document.getElementById("back-btn");

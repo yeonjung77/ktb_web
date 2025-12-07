@@ -176,6 +176,14 @@
     const apiBase = "";
 
     window.addEventListener("DOMContentLoaded", () => {
+      const appTitleEl = document.querySelector(".app-title");
+      if (appTitleEl) {
+        appTitleEl.style.cursor = "pointer";
+        appTitleEl.addEventListener("click", () => {
+          window.location.href = "/static/posts_list.html";
+        });
+      }
+
       const loginEmailInput = document.getElementById("login-email");
       const loginPasswordInput = document.getElementById("login-password");
       const loginBtn = document.getElementById("login-btn");

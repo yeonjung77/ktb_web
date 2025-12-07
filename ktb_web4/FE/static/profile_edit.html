@@ -258,6 +258,14 @@
     const headerMenuPasswordEditBtn = document.getElementById("header-menu-password-edit");
     const headerMenuLogoutBtn = document.getElementById("header-menu-logout");
 
+    const appTitleEl = document.querySelector(".app-title");
+    if (appTitleEl) {
+      appTitleEl.style.cursor = "pointer";
+      appTitleEl.addEventListener("click", () => {
+        window.location.href = "/static/posts_list.html";
+      });
+    }
+
     const storedProfileImage = localStorage.getItem("currentProfileImage");
     if (storedProfileImage) {
       headerAvatarImg.src = storedProfileImage;

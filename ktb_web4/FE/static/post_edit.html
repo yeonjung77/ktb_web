@@ -240,6 +240,14 @@
     const menuPasswordEditBtn = document.getElementById("menu-password-edit");
     const menuLogoutBtn = document.getElementById("menu-logout");
 
+    const appTitleEl = document.querySelector(".app-title");
+    if (appTitleEl) {
+      appTitleEl.style.cursor = "pointer";
+      appTitleEl.addEventListener("click", () => {
+        window.location.href = "/static/posts_list.html";
+      });
+    }
+
     const currentEmail = localStorage.getItem("currentEmail") || "";
     const storedProfileImage = localStorage.getItem("currentProfileImage");
     if (storedProfileImage) {
