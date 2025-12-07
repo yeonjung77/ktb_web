@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원정보 수정 - 커뮤니티</title>
+  <style>
+    :root {
+      --bg: #f3f7fd;
+      --card-bg: #ffffff;
+      --border-subtle: #dbe5f5;
+      --primary: #7fb5ff;
+      --primary-dark: #4f8fea;
+      --danger: #f97373;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-main);
+      text-align: center;
+    }
+    h1 { 
+      margin-bottom: 1.2rem;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 18px;
+      padding: 24px;
+      margin-top: 16px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      border: 1px solid rgba(219, 229, 245, 0.9);
+      text-align: left;
+    }
+
+    /* 이메일 텍스트 */
+    .email-label {
+      font-size: 14px;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    /* 프로필 원형 */
+    .avatar-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .avatar-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 999px;
+      background: #e0edff;
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .avatar-change-text {
+      position: absolute;
+      bottom: 4px;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      background: rgba(0,0,0,0.45);
+      color: white;
+      padding: 2px 0;
+    }
+
+    .input-row { margin-bottom: 14px; }
+    .input-row label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-muted); }
+    .input-row input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background-color: #f9fbff;
+      outline: none;
+    }
+    .input-row input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(127, 181, 255, 0.4);
+      background-color: white;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #7fb5ff, #4f8fea);
+      color: white;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      box-shadow: 0 10px 25px rgba(79, 143, 234, 0.30);
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #72a9ff, #437fe0);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(79, 143, 234, 0.40);
+    }
+    .btn-danger {
+      background-color: var(--danger);
+    }
+
+    .result {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .result.ok { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+    .result.error { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    #profile-image { display: none; }
+
+    /* ===== 확인 모달 ===== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-box {
+      width: 320px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .modal-main-text {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .modal-sub-text {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 18px;
+    }
+    .modal-btn-row {
+      display: flex;
+      gap: 8px;
+    }
+    .modal-btn {
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .modal-cancel { background: #e5e7eb; color: #374151; }
+    .modal-confirm { background: #f97373; color: white; }
+  </style>
+</head>
+
+<body>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+    <div style="flex:1; text-align:center; font-size:16px; font-weight:600; letter-spacing:0.04em; color:#6b7280;">
+      AI Fashion Insight Engine
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div id="header-profile-avatar" style="width:32px;height:32px;border-radius:999px;background:#e0edff;display:flex;align-items:center;justify-content:center;font-size:14px;color:#1f2937;cursor:pointer;position:relative;">
+        <img id="header-profile-avatar-img" alt="프로필 이미지" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:999px;" />
+        <span id="header-avatar-initial">?</span>
+        <div id="header-profile-menu" style="position:absolute;top:40px;right:0;background:#ffffff;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,0.15);padding:8px;display:none;z-index:20;min-width:140px;">
+          <button id="header-menu-profile-edit" type="button" style="width:100%;padding:6px 10px;margin:2px 0;font-size:13px;background-color:#edf2ff;color:#111827;text-align:left;border-radius:8px;border:none;cursor:pointer;">회원정보 수정</button>
+          <button id="header-menu-password-edit" type="button" style="width:100%;padding:6px 10px;margin:2px 0;font-size:13px;background-color:#edf2ff;color:#111827;text-align:left;border-radius:8px;border:none;cursor:pointer;">비밀번호 수정</button>
+          <button id="header-menu-logout" type="button" style="width:100%;padding:6px 10px;margin:2px 0;font-size:13px;background-color:#edf2ff;color:#111827;text-align:left;border-radius:8px;border:none;cursor:pointer;">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="height:1px; background-color:#dbe5f5; margin-bottom:12px;"></div>
+  <h1>회원정보 수정</h1>
+
+  <div class="card">
+
+    <!-- 이메일 표시 추가 -->
+    <div class="email-label" id="email-label"></div>
+
+    <!-- 프로필 사진 -->
+    <div class="avatar-wrapper">
+      <div class="avatar-circle" id="avatar-circle">
+        <span class="small">프로필</span>
+        <div class="avatar-change-text">변경</div>
+      </div>
+    </div>
+
+    <input id="profile-image" type="file" accept="image/*" />
+
+    <!-- 닉네임 입력 -->
+    <div class="input-row">
+      <label for="profile-nickname">닉네임</label>
+      <input id="profile-nickname" type="text" />
+    </div>
+
+    <button id="profile-update-btn">수정하기</button>
+    <button id="profile-delete-btn" class="btn-danger">회원 탈퇴</button>
+
+    <div id="profile-result" style="display:none;" class="result"></div>
+  </div>
+
+  <!-- ===== 회원탈퇴 모달 ===== -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-main-text">회원탈퇴 하시겠습니까?</div>
+      <div class="modal-sub-text">작성된 게시글과 댓글은 모두 삭제됩니다.</div>
+      <div class="modal-btn-row">
+        <button class="modal-btn modal-cancel" id="modal-cancel-btn">취소</button>
+        <button class="modal-btn modal-confirm" id="modal-confirm-btn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiBase = "";
+    const email = localStorage.getItem("currentEmail");
+
+    const emailLabel = document.getElementById("email-label");
+    emailLabel.textContent = email ? `이메일 : ${email}` : "이메일 : 로그인 필요";
+
+    const avatarCircle = document.getElementById("avatar-circle");
+    const profileImageInput = document.getElementById("profile-image");
+    const profileResultEl = document.getElementById("profile-result");
+
+    /* 헤더 프로필 아바타 */
+    const headerAvatar = document.getElementById("header-profile-avatar");
+    const headerAvatarImg = document.getElementById("header-profile-avatar-img");
+    const headerAvatarInitial = document.getElementById("header-avatar-initial");
+    const headerProfileMenu = document.getElementById("header-profile-menu");
+    const headerMenuProfileEditBtn = document.getElementById("header-menu-profile-edit");
+    const headerMenuPasswordEditBtn = document.getElementById("header-menu-password-edit");
+    const headerMenuLogoutBtn = document.getElementById("header-menu-logout");
+
+    const storedProfileImage = localStorage.getItem("currentProfileImage");
+    if (storedProfileImage) {
+      headerAvatarImg.src = storedProfileImage;
+      headerAvatarImg.style.display = "block";
+      headerAvatarInitial.style.display = "none";
+    } else {
+      headerAvatarInitial.textContent = email ? email[0].toUpperCase() : "?";
+      headerAvatarInitial.style.display = "block";
+      headerAvatarImg.style.display = "none";
+    }
+
+    headerAvatar.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = headerProfileMenu.style.display === "block";
+      headerProfileMenu.style.display = isOpen ? "none" : "block";
+    });
+
+    document.addEventListener("click", () => {
+      headerProfileMenu.style.display = "none";
+    });
+
+    headerProfileMenu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    headerMenuProfileEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/profile_edit.html";
+    });
+
+    headerMenuPasswordEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/password_edit.html";
+    });
+
+    headerMenuLogoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentEmail");
+      localStorage.removeItem("currentProfileImage");
+      window.location.href = "/static/index.html";
+    });
+
+    /* 모달 */
+    const modalOverlay = document.getElementById("modal-overlay");
+    const modalCancelBtn = document.getElementById("modal-cancel-btn");
+    const modalConfirmBtn = document.getElementById("modal-confirm-btn");
+
+    let modalAction = null;
+
+    function openModal(actionFn) {
+      modalAction = actionFn;
+      modalOverlay.style.display = "flex";
+    }
+
+    function closeModal() {
+      modalOverlay.style.display = "none";
+      modalAction = null;
+    }
+
+    modalCancelBtn.addEventListener("click", closeModal);
+    modalConfirmBtn.addEventListener("click", () => {
+      if (modalAction) modalAction();
+      closeModal();
+    });
+
+    /* 프로필 이미지 클릭 → 파일 선택 */
+    avatarCircle.addEventListener("click", () => {
+      profileImageInput.click();
+    });
+
+    /* 파일 선택 → 사진 미리보기 */
+    profileImageInput.addEventListener("change", () => {
+      const file = profileImageInput.files[0];
+      if (!file) return;
+
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+
+      avatarCircle.innerHTML = "";
+      avatarCircle.appendChild(img);
+
+      const text = document.createElement("div");
+      text.className = "avatar-change-text";
+      text.textContent = "변경";
+      avatarCircle.appendChild(text);
+
+      // 헤더 아바타에도 반영
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          localStorage.setItem("currentProfileImage", e.target.result);
+        } catch (err) {
+          console.error("프로필 이미지 저장 실패", err);
+        }
+        headerAvatarImg.src = e.target.result;
+        headerAvatarImg.style.display = "block";
+        headerAvatarInitial.style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    /* 회원정보 수정 */
+    document.getElementById("profile-update-btn").addEventListener("click", async () => {
+      if (!email) return showResult("먼저 로그인해주세요.", false);
+
+      const nickname = document.getElementById("profile-nickname").value.trim();
+      const profileFile = profileImageInput.files[0] || null;
+
+      const form = new FormData();
+      form.append("email", email);
+      form.append("nickname", nickname);
+      if (profileFile) form.append("profile", profileFile);
+
+      try {
+        const res = await fetch(apiBase + "/profile/update", {
+          method: "PUT",
+          body: form,
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) return showResult(data.detail || "회원정보 수정 오류", false);
+
+        showResult("수정이 완료되었습니다.", true);
+      } catch (err) {
+        console.error(err);
+        showResult("네트워크 오류가 발생했습니다.", false);
+      }
+    });
+
+    /* 회원 탈퇴 클릭 → 모달 오픈 */
+    document.getElementById("profile-delete-btn").addEventListener("click", () => {
+      if (!email) return showResult("먼저 로그인해주세요.", false);
+
+      openModal(async () => {
+        const form = new FormData();
+        form.append("email", email);
+
+        try {
+          const res = await fetch(apiBase + "/profile/delete", {
+            method: "DELETE",
+            body: form,
+          });
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) return showResult(data.detail || "회원 탈퇴 중 오류 발생", false);
+
+          showResult("탈퇴 완료되었습니다.", true);
+          localStorage.removeItem("currentEmail");
+
+          setTimeout(() => {
+            window.location.href = "/static/index.html";
+          }, 800);
+        } catch (err) {
+          console.error(err);
+          showResult("네트워크 오류가 발생했습니다.", false);
+        }
+      });
+    });
+
+    function showResult(message, ok=true) {
+      profileResultEl.style.display = "block";
+      profileResultEl.className = "result " + (ok ? "ok" : "error");
+      profileResultEl.textContent = message;
+    }
+  </script>
+</body>
+</html>

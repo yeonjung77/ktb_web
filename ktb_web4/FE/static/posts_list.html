@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시글 목록 - 커뮤니티</title>
+  <style>
+    :root {
+      --bg: #f3f7fd;
+      --card-bg: #ffffff;
+      --primary: #7fb5ff;
+      --primary-dark: #4f8fea;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-main);
+    }
+    h1 {
+      margin-bottom: 0.4rem;
+      font-size: 22px;
+      font-weight: 700;
+      padding: 10px 26px;
+      border-radius: 999px;
+      background-color: #7fb5ff;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      height: 44px;
+    }
+
+    /* 수정된 Chat & Report 버튼 */
+    .btn-secondary {
+      background-color: #e3eefc;
+      color: var(--primary-dark);
+      padding: 10px 26px;
+      font-size: 15px;
+      border-radius: 999px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      box-shadow: none;
+      background-image: none;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 12px 28px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #7fb5ff, #4f8fea);
+      color: white;
+      font-size: 15px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px rgba(79, 143, 234, 0.30);
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #72a9ff, #437fe0);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(79, 143, 234, 0.40);
+    }
+
+    .small { font-size: 12px; color: var(--text-muted); }
+    .card {
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: 18px;
+      background-color: var(--card-bg);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      border: 1px solid rgba(219, 229, 245, 0.9);
+    }
+    ul { padding-left: 0; list-style: none; }
+    li {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background-color 0.15s ease;
+    }
+    li:hover {
+      background-color: #e9f2ff;
+    }
+    .title { font-weight: 600; }
+    .meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .top-bar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-top: 8px; 
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* 게시글 작성 버튼을 더 아래로 내림 */
+    .top-actions { 
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .app-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .app-divider {
+      height: 1px;
+      background-color: #dbe5f5;
+      margin-bottom: 12px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #e0edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #1f2937;
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 999px;
+    }
+    .profile-menu {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      padding: 8px;
+      display: none;
+      z-index: 20;
+      min-width: 140px;
+    }
+    .profile-menu button {
+      width: 100%;
+      padding: 6px 10px;
+      margin: 2px 0;
+      font-size: 13px;
+      background-color: #edf2ff;
+      color: #111827;
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-header">
+    <div class="app-title">AI Fashion Insight Engine</div>
+    <div class="header-right">
+      <div class="avatar" id="profile-avatar">
+        <img id="profile-avatar-img" alt="프로필 이미지" style="display:none;" />
+        <span id="avatar-initial">?</span>
+
+        <div class="profile-menu" id="profile-menu">
+          <button id="menu-profile-edit" type="button">회원정보 수정</button>
+          <button id="menu-password-edit" type="button">비밀번호 수정</button>
+          <button id="menu-logout" type="button">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="app-divider"></div>
+
+  <div class="top-bar">
+    <div class="top-left">
+      <h1>게시글 목록</h1>
+      <button id="go-chat-report-btn" type="button" class="btn-secondary">Chat & Report</button>
+    </div>
+
+    <div class="top-actions">
+      <button id="go-create-btn" type="button">게시글 작성</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <ul id="posts-list"></ul>
+  </div>
+
+  <script>
+    const apiBase = "";
+    const postsListEl = document.getElementById("posts-list");
+    const goCreateBtn = document.getElementById("go-create-btn");
+    const goChatReportBtn = document.getElementById("go-chat-report-btn");
+
+    const avatarEl = document.getElementById("profile-avatar");
+    const avatarImgEl = document.getElementById("profile-avatar-img");
+    const avatarInitialEl = document.getElementById("avatar-initial");
+    const profileMenuEl = document.getElementById("profile-menu");
+    const menuProfileEditBtn = document.getElementById("menu-profile-edit");
+    const menuPasswordEditBtn = document.getElementById("menu-password-edit");
+    const menuLogoutBtn = document.getElementById("menu-logout");
+
+    const currentEmail = localStorage.getItem("currentEmail") || "";
+    const storedProfileImage = localStorage.getItem("currentProfileImage");
+    if (storedProfileImage) {
+      avatarImgEl.src = storedProfileImage;
+      avatarImgEl.style.display = "block";
+      avatarInitialEl.style.display = "none";
+    } else {
+      avatarInitialEl.textContent = currentEmail ? currentEmail[0].toUpperCase() : "?";
+      avatarInitialEl.style.display = "block";
+      avatarImgEl.style.display = "none";
+    }
+
+    avatarEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = profileMenuEl.style.display === "block";
+      profileMenuEl.style.display = isOpen ? "none" : "block";
+    });
+
+    document.addEventListener("click", () => {
+      profileMenuEl.style.display = "none";
+    });
+
+    profileMenuEl.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    menuProfileEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/profile_edit.html";
+    });
+
+    menuPasswordEditBtn.addEventListener("click", () => {
+      window.location.href = "/static/password_edit.html";
+    });
+
+    menuLogoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentEmail");
+      localStorage.removeItem("currentProfileImage");
+      window.location.href = "/static/index.html";
+    });
+
+    async function loadPosts() {
+      postsListEl.innerHTML = "";
+
+      try {
+        const res = await fetch(apiBase + "/posts?page=1&page_size=10");
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          postsListEl.innerHTML = `<li class="small">에러: ${data.detail || "목록을 불러올 수 없습니다."}</li>`;
+          return;
+        }
+
+        (data.posts || []).forEach((post) => {
+          const li = document.createElement("li");
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = post.title;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          const author = (post.author && post.author.trim()) ? post.author : "관리자";
+          const createdAt = post.created_at || "";
+          meta.textContent =
+            `${author} · ${createdAt} · 좋아요 ${post.likes} · 댓글 ${post.comments} · 조회수 ${post.views}`;
+
+          li.appendChild(title);
+          li.appendChild(meta);
+
+          li.addEventListener("click", () => {
+            window.location.href = `/static/post_detail.html?id=${encodeURIComponent(post.id)}`;
+          });
+
+          postsListEl.appendChild(li);
+        });
+
+      } catch (err) {
+        console.error(err);
+        postsListEl.innerHTML = `<li class="small">네트워크 오류가 발생했습니다.</li>`;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", loadPosts);
+
+    goCreateBtn.addEventListener("click", () => {
+      window.location.href = "/static/post_create.html";
+    });
+
+    goChatReportBtn.addEventListener("click", () => {
+      window.location.href = "/static/chat_report.html";
+    });
+  </script>
+</body>
+</html>
